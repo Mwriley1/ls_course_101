@@ -1,0 +1,69 @@
+1. Define a method that returns the sum of two integers.
+
+Ask the user for two numbers
+Get and store the two numbers
+Add the two numbers
+Return the result
+
+START
+
+PRINT "Enter the first number: "
+SET num1 = GET user input
+PRINT "Enter the second number: "
+SET num2 = GET user input
+SET result = num1 + num2
+RETURN result
+
+END
+
+2. Define a method that takes an array of strings, and returns a string that is all those strings concatenated together.
+
+#Given an array of strings
+
+Initialize a variable to store the concatenated string
+Iterate over each string in the array
+Add each string in the array to the concatenated string variable
+return the concatenated string variable
+
+START
+
+SET concat_s = nil
+FOR EACH string s in array
+  concat_s = concat_s + s
+
+RETURN concat_s
+
+END
+
+3. Define a method that takes an array of integers and returns a new array with every other element.
+
+#Given an array of integers
+
+Initialize a new empty array called new_array
+Iterate over each element in the given array
+  If the index in the array is even OR eqal to zero
+    add the integer value of the given array to new_array
+  else
+    move to the next element in the array
+return new_array
+
+START
+
+SET new_array = []
+FOR EACH integer in array
+  IF index in array == 0 || index in array % 2 = 0
+    new_array = new_array + element in array
+  ELSE
+    NEXT
+RETURN new_array
+
+END
+
+
+
+    
+
+
+
+
+

@@ -1,0 +1,38 @@
+Loan Payment Calculator
+
+Greet the user
+Get the desired loan amount, APR, and loan duration from the user
+  -Prompt the user for:
+    -loan amount
+      -if valid
+        -store input
+      -else 
+        -reprompt user for a valid input
+    -APR
+     -if valid
+        -store input
+      -else 
+        -reprompt user for a valid input
+    -loan duration
+      -if valid
+        -store input
+      -else 
+        -reprompt user for a valid input
+Calculate monthly loan duration
+  -loan duration (in years) * 12
+Calculate monthly interest rate
+  -APR / 12
+Calculate the required monthly loan payment
+  -Payment = loan amount * (monthly interest rate * (1 + monthly interest rate)^monthly loan duration) / ((1 + monthly interest rate)^monthly loan duration - 1)
+Print all the terms of the loan including the calculated monthly loan payment for the user
+  Print in block form:
+    -Loan amount
+    -APR
+    -Loan duration
+    -Monthly Payment
+Ask the user if they would like to calculate another loan payment
+  -if yes
+    -loop
+  -else
+    -break
+Thank the user for using the loan payment calculator
