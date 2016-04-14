@@ -1,31 +1,46 @@
+require 'yaml'
+MESSAGES = YAML.load_file('calc_messages.yml')
+
 def prompt(message)
   puts "=> #{message}"
 end
 
-def valid_number?(number)
-  number.to_i != 0
+def integer?(input)
+  input.to_i == 0 && input != '0' ? false : true
 end
 
-def operation_to_message(operator)
-  case operator
-  when '1'
-    'Adding'
-  when '2'
-    'Subtracting'
-  when '3'
-    'Multiplying'
-  when '4'
-    'Dividing'
+def number?(input)
+  if input.to_i == 0 && input != '0'
+    false
+  elsif input.to_f == 0.0 && input != '0'
+    false
+  else
+    true
   end
 end
 
-prompt 'Welcome to the calculator! Enter your name:'
+def operation_to_message(operator)
+  operation = case operator
+                when '1'
+                  'Adding'
+                when '2'
+                  'Subtracting'
+                when '3'
+                  'Multiplying'
+                when '4'
+                  'Dividing'
+                end
+
+  operation
+end
+
+prompt MESSAGES['welcome']
 name = ''
 loop do
   name = gets.chomp
 
   if name.empty?
-    prompt 'Please enter a valid name.'
+    prompt MESSAGES['valid_name']
   else
     break
   end
@@ -37,26 +52,26 @@ loop do # main loop
   num_1 = ''
 
   loop do
-    prompt 'Enter the first number:'
+    prompt MESSAGES['first_number']
     num_1 = gets.chomp
 
-    if valid_number?(num_1)
+    if integer?(num_1)
       break
     else
-      prompt('Invalid number.')
+      prompt MESSAGES['invalid_number']
     end
   end
 
   num_2 = ''
 
   loop do
-    prompt 'Enter the second number:'
+    prompt MESSAGES['second_number']
     num_2 = gets.chomp
 
-    if valid_number?(num_2)
+    if integer?(num_2)
       break
     else
-      prompt('Invalid number.')
+      prompt MESSAGES['invalid_number']
     end
   end
 
@@ -77,7 +92,7 @@ loop do # main loop
     if %w(1 2 3 4).include?(operation)
       break
     else
-      prompt 'You must enter 1, 2, 3, or 4.'
+      prompt MESSAGES['invalid_choice']
     end
   end
 
@@ -93,14 +108,14 @@ loop do # main loop
            when '4'
              num_1.to_f / num_2.to_f
            else
-             prompt 'That is not a valid operation.'
+             prompt MESSAGES['invalid_operation']
            end
 
   prompt "The result is #{result}."
 
-  prompt 'Do you want to perform another calculatrion? (Y or N)'
+  prompt MESSAGES['another_calc']
   answer = gets.chomp
   break unless answer.downcase.start_with?('y')
 end
 
-prompt 'Thank you for using Calculator!'
+prompt MESSAGES['thank_you']
