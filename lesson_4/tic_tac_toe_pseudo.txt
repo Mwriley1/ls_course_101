@@ -1,0 +1,26 @@
+Start Tic Tac Toe
+
+1. Display empty board
+2. User marks a square
+3. Computer marks a square
+4. Winner or Tie?
+	If winner
+		Display winner
+		Play again?
+			If yes
+				Reset Board
+				Go to 1
+			If no
+				Goodbye
+				End
+	Else if Tie
+		Display tie
+		Play again?
+			If yes
+				Reset Board
+				Go to 1
+			If no
+				Goodbye
+				End
+	Else
+		Go to 2
