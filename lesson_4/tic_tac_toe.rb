@@ -96,7 +96,7 @@ def computer_move(square_values, winning_combos, player_marker, computer_marker)
   square_values[move].replace(computer_marker)
 end
 
-def win_game?(square_values, winning_combos, player_marker, computer_marker)
+def get_winner(square_values, winning_combos, player_marker, computer_marker)
   test_array = []
   winning_combos.each do |combo|
     3.times {|int| test_array[int] = square_values[combo[int]]}
@@ -109,13 +109,13 @@ def win_game?(square_values, winning_combos, player_marker, computer_marker)
   false
 end
 
-def display_winner(square_values, winning_combos, player_marker, computer_marker, player_score, computer_score)
-  if win_game?(square_values, winning_combos, player_marker, computer_marker) == player_marker
-    display_board(square_values, player_score, computer_score, player_marker, computer_marker)
+def display_winner(player_marker, computer_marker, winner, move_number)
+  if winner == player_marker
     puts 'You win!'
-  else
-    display_board(square_values, player_score, computer_score, player_marker, computer_marker)
+  elsif winner == computer_marker
     puts 'The computer wins!'
+  elsif winner == false && move_number == 9
+    puts "It's a draw!"
   end
 end
 
@@ -140,36 +140,34 @@ loop do
 		square_values = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
     player_marker = ''
     computer_marker = ''
+    move_number = 0
+    winner = ''
 
     select_player_marker(player_marker)
 		select_computer_marker(player_marker, computer_marker)
 		
-		loop do
-      if win_game?(square_values, winning_combos, player_marker, computer_marker)
-        if win_game?(square_values, winning_combos, player_marker, computer_marker) == player_marker
-          display_winner(square_values, winning_combos, player_marker, computer_marker, player_score, computer_score)
-          player_score += 1
-          break
-        else
-          display_winner(square_values, winning_combos, player_marker, computer_marker, player_score, computer_score)
-          computer_score += 1
-          break
-        end
-      end
+		display_board(square_values, player_score, computer_score, player_marker, computer_marker)
+    display_move_instructions(player_marker)
 
-      display_board(square_values, player_score, computer_score, player_marker, computer_marker)
-			display_move_instructions(player_marker)
-			
+    loop do     
       player_selection = gets.chomp
 			player_select_square(player_selection, square_values, player_marker)
+      move_number += 1
+      winner = get_winner(square_values, winning_combos, player_marker, computer_marker) 
+      player_score += 1 if winner == player_marker
+      computer_score += 1 if winner == computer_marker
       display_board(square_values, player_score, computer_score, player_marker, computer_marker)
+      display_winner(player_marker, computer_marker, winner, move_number)
+      break if get_winner(square_values, winning_combos, player_marker, computer_marker) != false || move_number == 9
 
-      if square_values.include?(' ') == false && win_game?(square_values, winning_combos, player_marker, computer_marker) == false
-        puts "It's a draw!"
-        break
-      end
-
-			computer_move(square_values, winning_combos, player_marker, computer_marker)
+      computer_move(square_values, winning_combos, player_marker, computer_marker)
+      move_number += 1
+      winner = get_winner(square_values, winning_combos, player_marker, computer_marker)
+      player_score += 1 if winner == player_marker
+      computer_score += 1 if winner == computer_marker
+      display_board(square_values, player_score, computer_score, player_marker, computer_marker)
+      display_winner(player_marker, computer_marker, winner, move_number)
+      break if get_winner(square_values, winning_combos, player_marker, computer_marker) != false
 		end
 	else
 		puts 'That is not a valid choice.'
@@ -177,4 +175,3 @@ loop do
 end
 
 #=end
-
