@@ -5,7 +5,7 @@ WINNNING_COMBOS = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5,
 PLAYER_MARKER = 'X'
 COMPUTER_MARKER = 'O'
 INITIAL_SQUARE = ' '
-
+PLAYS_FIRST = 'choose'
 
 def initialize_board(board)
   new_board = board
@@ -23,6 +23,30 @@ def find_empty_squares(board)
   empty_squares = []
   board.each_index {|index| empty_squares << index if board[index] == ' '}
   empty_squares
+end
+
+def set_current_player()
+  case PLAYS_FIRST
+  when 'player'
+    current_player = 'player'
+  when 'computer'
+    current_player = 'computer'
+  when 'choose'
+    loop do
+      puts "Who should play first?  Type 'p' for player or 'c' for computer"
+      user_choice = gets.chomp
+      if user_choice.downcase == 'p'
+        current_player = 'player'
+        break
+      elsif user_choice.downcase == 'c'
+        current_player = 'computer'
+        break
+      else
+        puts 'That is not a valid choice.'
+      end    
+    end
+    current_player
+  end
 end
 
 def player_select_square(board, marker)
@@ -95,6 +119,10 @@ def win?(board, winning_combos, marker)
   false
 end
 
+def draw?(board)
+  find_empty_squares(board).empty? ? true : false
+end
+
 def joinor(array, delimiter=', ', conjunction='or ')
   delimiter = ' ' if array.length < 3
   selectable_squares = array.join(delimiter)
@@ -106,13 +134,63 @@ def display_score(player_score, computer_score)
   puts "Player Score: #{player_score} Computer Score: #{computer_score}"
 end
 
+def display_win_or_draw(winner, scores)
+  if winner == 'player'
+    puts 'You win!'
+    scores['player'] += 1
+  elsif winner == 'computer'
+    puts 'The Computer wins!'
+    scores['computer'] += 1
+  else
+    puts "It's a draw!"
+  end
+    display_score(scores['player'], scores['computer'])
+    puts 'Press any key to continue'
+    gets.chomp
+end
+
+def player_turn(board, winning_combos, player_marker, computer_marker, scores)
+  player_select_square(board, PLAYER_MARKER)
+  display_board(board, PLAYER_MARKER, COMPUTER_MARKER)
+  if win?(board, WINNNING_COMBOS, PLAYER_MARKER)
+    display_win_or_draw('player', scores)
+  elsif draw?(board)
+    display_win_or_draw('draw', scores)
+  end 
+end
+
+def computer_turn(board, winning_combos, player_marker, computer_marker, scores)
+  computer_select_square(board, WINNNING_COMBOS, PLAYER_MARKER, COMPUTER_MARKER)
+  display_board(board, PLAYER_MARKER, COMPUTER_MARKER)
+  if win?(board, WINNNING_COMBOS, COMPUTER_MARKER)
+    display_win_or_draw('computer', scores)
+  elsif draw?(board)
+    display_win_or_draw('draw', scores)
+  end
+end
+
+def alternate_player(current_player)
+  current_player == 'player' ? current_player = 'computer' : current_player = 'player'
+  current_player
+end
+
+def select_square(current_player, board, winning_combos, player_marker, computer_marker, scores)
+  if current_player == 'player'
+    player_turn(board, winning_combos, player_marker, computer_marker, scores)
+  else
+    computer_turn(board, winning_combos, player_marker, computer_marker, scores)
+  end
+  alternate_player(current_player)
+end
+
 # Main Program Start-------------------------
 
 puts "Welcome to Tic Tac Toe!\n\n"
 
 loop do 
-  player_score = 0
-  computer_score = 0
+  board = []
+  scores = {'player' => 0, 'computer' => 0}
+  current_player = ''
 
   puts "Enter 'N' to start a new match (first to five wins) or 'Q' to quit."
   play_a_game = gets.chomp.upcase
@@ -121,41 +199,17 @@ loop do
     break
   elsif play_a_game == 'N'
     loop do 
-      break if player_score >= 5 || computer_score >= 5    
-      board = []
-
-      initialize_board(board)
+      break if scores.has_value?(5)
+      current_player = set_current_player()
+      initialize_board(board)    
       display_board(board, PLAYER_MARKER, COMPUTER_MARKER)
 
       loop do 
-        player_select_square(board, PLAYER_MARKER)
-        display_board(board, PLAYER_MARKER, COMPUTER_MARKER)
-        if win?(board, WINNNING_COMBOS, PLAYER_MARKER)
-          puts 'You win!'
-          player_score += 1
-          display_score(player_score, computer_score)
-          puts 'Press any key to continue'
-          gets.chomp
-          break
-        end 
-
-        computer_select_square(board, WINNNING_COMBOS, PLAYER_MARKER, COMPUTER_MARKER)
-        display_board(board, PLAYER_MARKER, COMPUTER_MARKER)
-        if win?(board, WINNNING_COMBOS, COMPUTER_MARKER)
-          puts 'The Computer wins!'
-          player_score += 1
-          display_score(player_score, computer_score)
-          puts 'Press any key to continue'
-          gets.chomp
-          break
-        end
-
-        if find_empty_squares(board).empty?
-          puts "It's a draw!"
-          puts 'Press any key to continue'
-          gets.chomp
-          break
-        end
+        select_square(current_player, board, WINNNING_COMBOS, PLAYER_MARKER, COMPUTER_MARKER, scores)
+        current_player = alternate_player(current_player)
+        break if win?(board, WINNNING_COMBOS, PLAYER_MARKER) || 
+        win?(board, WINNNING_COMBOS, COMPUTER_MARKER) ||
+        draw?(board)
       end
     end
   else
