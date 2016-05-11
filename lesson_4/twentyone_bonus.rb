@@ -1,195 +1,185 @@
-# Twenty One with Bonus Features
+# Twenty One Bonus
 
 CARDS = %w(A K Q J 10 9 8 7 6 5 4 3 2).freeze
 WIN_TOTAL = 21
 DEALER_HIT_LIMIT = 17
 
-#-----Program Methods Start-----
-
-def initialize_deck(cards)
-  cards * 4
+def initialize_deck
+  (CARDS * 4).shuffle
 end
 
-def display_main_menu
-  main_menu_text = <<-MSG
-
-  Welcome to Twenty One!
-
-  (D)eal a New Hand
-  (S)huffle Deck
-  (Q)uit
-
-  Please select an option.
-
-  MSG
-  puts main_menu_text
+def format_dealer_hand(dealer_hand)
+  formatted_hand = []
+  dealer_hand.each { |card| formatted_hand << card }
+  formatted_hand[1] = '?'
+  formatted_hand
 end
 
-def display_visible_cards(player_cards, dealer_cards)
-  system 'clear'
-  puts "\n"
-  print "Player Cards: "
-  player_cards.each { |card| print "#{card} " }
-  print "\nDealer Cards: "
-  print "? "
-  (dealer_cards.length - 1).times { |int| print "#{dealer_cards[int + 1]} " }
-  puts "\n\n"
-end
-
-def display_all_cards(player_cards, dealer_cards)
-  system 'clear'
-  puts "\n"
-  print "Player Cards: "
-  player_cards.each { |card| print "#{card} " }
-  print "\nDealer Cards: "
-  dealer_cards.each { |card| print "#{card} " }
-  puts "\n\n"
-end
-
-def shuffle(unshuffled_deck)
-  unshuffled_deck.shuffle
-end
-
-def reshuffle_eval(current_deck, full_deck)
-  if current_deck.count < 12
-    puts 'The deck is being reshuffled.'
-    shuffle(full_deck)
-  else
-    current_deck
+def hand_total(hand)
+  hand_total = 0
+  
+  hand.each do |card|
+    if card == 'K' || card == 'Q' || card == 'J'
+      hand_total += 10
+    elsif card == 'A'
+      hand_total += 11
+    else
+      hand_total += card.to_i
+    end
   end
-end
 
-def deal(player_hand, dealer_hand, deck)
-  2.times do
-    player_hand << deck.pop
-    dealer_hand << deck.pop
+  hand.select { |card| card == 'A' }.count.times do
+    hand_total -= 10 if hand_total > WIN_TOTAL
   end
+
+  hand_total
 end
 
 def hit(hand, deck)
   hand << deck.pop
 end
 
-def hand_total(hand)
-  hand_total = 0
-  hand.each do |card|
-    if card == 'K' || card == 'Q' || card == 'J'
-      card = 10
-    elsif card == 'A'
-      card = hand_total + 11 <= WIN_TOTAL ? 11 : 1
-    end
-    hand_total += card.to_i
+def display_cards(player_hand, dealer_hand, display_all=false)
+  if display_all == true
+    puts "\nPlayer Cards:  #{player_hand}     Player Hand Total: #{hand_total(player_hand)}"
+    puts "Dealer Cards:  #{dealer_hand}     Dealer Hand Total: #{hand_total(dealer_hand)}\n\n"
+  else
+    puts "\nPlayer Cards:  #{player_hand}     Player Hand Total: #{hand_total(player_hand)}"
+    puts "Dealer Cards:  #{format_dealer_hand(dealer_hand)}\n\n"
   end
-  hand_total
 end
 
-def keep_score(winner, scores)
-  scores[winner] += 1
+def display_invalid_choice
+  puts "That is not a valid choice.  Please select again."
 end
 
 def bust?(hand)
-  hand_total(hand) > WIN_TOTAL ? true : false
+  hand_total(hand) > WIN_TOTAL
 end
 
-def twenty_one?(hand)
-  hand_total(hand) == WIN_TOTAL ? true : false
-end
+def display_hand_winner(player_hand, dealer_hand, scores)
+  player_total = hand_total(player_hand)
+  dealer_total = hand_total(dealer_hand)
 
-def display_twenty_one(player_cards, dealer_cards, scores)
-  if twenty_one?(player_cards)
-    puts 'Twenty one!  You win!'
-    keep_score(:player, scores)
-  elsif twenty_one?(dealer_cards)
-    puts 'The Dealer has twenty one!  You lose!'
-    keep_score(:dealer, scores)
-  elsif twenty_one?(player_cards) && twenty_one?(dealer_cards)
-    puts "You both have twenty one!  It's a push!"
-  end
-end
-
-def dealer_eval(player_cards, dealer_cards, deck)
-  while hand_total(dealer_cards) < DEALER_HIT_LIMIT || hand_total(dealer_cards) < hand_total(player_cards)
-    hit(dealer_cards, deck)
-  end
-end
-
-def display_winner(player_cards, dealer_cards, scores)
-  if hand_total(player_cards) > hand_total(dealer_cards)
-    puts 'You win!'
-    keep_score(:player, scores)
-  elsif hand_total(player_cards) < hand_total(dealer_cards)
-    puts 'You lose!'
-    keep_score(:dealer, scores)
+  if bust?(player_hand)
+    puts 'You have busted!  You lose!'
+  elsif bust?(dealer_hand)
+    puts 'The dealer has busted.  You win!'
+  elsif player_total > dealer_total
+    puts 'Your hand is greater than the dealers.  You win!'
+  elsif player_total < dealer_total
+    puts 'The dealers hand is greater than your hand.  You lose!'
   else
-    puts "It's a push!"
+    puts 'Your hand and the dealers hand are equal.  It is a push!'
+  end
+  puts "Player Score: #{scores[:player]}     Dealer Score: #{scores[:dealer]}"
+end
+
+def keep_score(player_hand, dealer_hand, scores)
+  player_total = hand_total(player_hand)
+  dealer_total = hand_total(dealer_hand)
+
+  if bust?(player_hand)
+    scores[:dealer] += 1
+  elsif bust?(dealer_hand)
+    scores[:player] += 1
+  elsif player_total > dealer_total
+    scores[:player] += 1
+  elsif player_total < dealer_total
+    scores[:dealer] += 1
   end
 end
 
-def display_score(scores)
-  puts "Player Score: #{scores[:player]}"
-  puts "Dealer Score: #{scores[:dealer]}"
+def display_game_winner(scores)
+  scores[:player] > scores[:dealer] ? puts('You have won the game!') : puts('The dealer has won the game!')
 end
 
-#-----Main Program Start-----
+def new_game?
+  puts 'Would you like to play another game? (Y or N)'
+  gets.chomp.casecmp('Y') == 0 ? true : false
+end
 
-current_deck = shuffle(initialize_deck(CARDS))
-scores = { player: 0, dealer: 0 }
+scores = {player: 0, dealer: 0}
+
+puts "Welcome to Twenty One!"
 
 loop do
-  current_deck = reshuffle_eval(current_deck, initialize_deck(CARDS))
+  # Initialize variables
 
-  display_main_menu
-  user_answer = gets.chomp
+  deck = initialize_deck
+  player_hand = []
+  dealer_hand = []
 
-  case user_answer.upcase
-  when 'D'
-    player_cards = []
-    dealer_cards = []
+  #system 'clear'
+  # Inital deal
 
-    deal(player_cards, dealer_cards, current_deck)
-    display_visible_cards(player_cards, dealer_cards)
+  2.times do
+    player_hand << deck.pop
+    dealer_hand << deck.pop
+  end
 
-    if twenty_one?(player_cards) || twenty_one?(dealer_cards)
-      display_twenty_one(player_cards, dealer_cards, scores)
-      display_score(scores)
-    else
-      until user_answer.upcase == 'S'
-        puts 'Would you like to (H)it or (S)tand?'
-        user_answer = gets.chomp
+  # Initial display of cards
 
-        if user_answer.upcase == 'H'
-          hit(player_cards, current_deck)
-          display_visible_cards(player_cards, dealer_cards)
+  puts "\nAfter the initial deal, the player and the dealer have the following cards:"
+  display_cards(player_hand, dealer_hand)
 
-          if bust?(player_cards)
-            puts "Busted!  You lose!"
-            scores[:dealer] += 1
-            display_score(scores)
-            break
-          end
-        else
-          dealer_eval(player_cards, dealer_cards, current_deck)
-          display_all_cards(player_cards, dealer_cards)
+  # Player turn
 
-          if bust?(dealer_cards)
-            puts "The Dealer busted!  You win!"
-            scores[:player] += 1
-            display_score(scores)
-            break
-          end
+  loop do
+    puts "Would you like to (H)it or (S)tay?"
+    hit_or_stay = gets.chomp.upcase
+    display_invalid_choice if ['H', 'S'].include?(hit_or_stay) == false
 
-          display_winner(player_cards, dealer_cards, scores)
-          display_score(scores)
-          break
-        end
-      end
+    if hit_or_stay == 'H'
+      hit(player_hand, deck)
+      puts 'You chose to hit.  The player and dealer cards are now as follows:'
+      display_cards(player_hand, dealer_hand)
     end
 
-  when 'S'
-    current_deck = shuffle(DECK)
-  when 'Q'
-    break
-  else
-    puts 'Please select one of the three options above.'
+    break if hit_or_stay == 'S' || bust?(player_hand)
   end
+
+  # Dealer turn
+
+  dealer_hit = false
+
+  if !bust?(player_hand)
+    puts 'It is now the dealers turn.'
+
+    loop do
+      break if bust?(dealer_hand) || hand_total(dealer_hand) >= DEALER_HIT_LIMIT
+      dealer_hit = true
+      hit(dealer_hand, deck)
+      puts 'The dealer hit.'
+      display_cards(player_hand, dealer_hand, true)
+    end
+  else
+    keep_score(player_hand, dealer_hand, scores)
+    display_hand_winner(player_hand, dealer_hand, scores)
+    if scores.has_value?(5)
+       display_game_winner(scores)
+       break unless new_game?
+    end
+    puts 'Dealing a new hand.'
+    next
+  end
+
+  # Display winner if the player has not busted
+
+  display_cards(player_hand, dealer_hand, true) if dealer_hit == false
+  keep_score(player_hand, dealer_hand, scores)
+  display_hand_winner(player_hand, dealer_hand, scores)
+  if scores.has_value?(5)
+    display_game_winner(scores)
+    break unless new_game?
+  end
+  puts 'Dealing a new hand.'
 end
+
+# 1. The hand total can not be cached for all instances in the program because the value of hand total
+# changes throughout the scope of the program.  When caching the hand total of the player or the dealer, 
+# you must be certain the hand total will not change following the assignment.
+
+# 2. The last play_again? in the example solution is different from the previous two because the previous 
+# two need to skip over a part of the program if a yes response is given.  The last play_again? does not 
+# because it is at the end of the program.   
