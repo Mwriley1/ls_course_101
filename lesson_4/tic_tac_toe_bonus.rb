@@ -1,65 +1,52 @@
-#Tic Tac Toe
-require 'pry'
+# Tic Tac Toe Bonus
 
-WINNNING_COMBOS = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4 ,6]]
-PLAYER_MARKER = 'X'
-COMPUTER_MARKER = 'O'
-INITIAL_SQUARE = ' '
-PLAYS_FIRST = 'choose'
+WINNNING_COMBOS = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6],
+                   [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]].freeze
+PLAYER_MARKER = 'X'.freeze
+COMPUTER_MARKER = 'O'.freeze
+INITIAL_SQUARE = ' '.freeze
+PLAYS_FIRST = 'player'.freeze # Options: 'player', 'computer', or 'choose'
 
-def initialize_board(board)
-  new_board = board
-  (0..8).each {|num| new_board[num] = INITIAL_SQUARE}
-  new_board
+def initialize_board!(board)
+  (0..8).each { |num| board[num] = INITIAL_SQUARE }
 end
 
-def display_board(board, player_marker, computer_marker)
-  tic_tac_toe_board = ["Tic Tac Toe Board\n", "#{board[0]} | #{board[1]} | #{board[2]}", "-----------", "#{board[3]} | #{board[4]} | #{board[5]}", "-----------", "#{board[6]} | #{board[7]} | #{board[8]}"]
+def display_board(board)
+  tic_tac_toe_board = ["Tic Tac Toe Board\n",
+                       "#{board[0]} | #{board[1]} | #{board[2]}", "-----------",
+                       "#{board[3]} | #{board[4]} | #{board[5]}", "-----------",
+                       "#{board[6]} | #{board[7]} | #{board[8]}"]
+
   system 'clear'
-  tic_tac_toe_board.each {|line| line.length == 43 ? puts(line.center(100)) : puts(line.center(100))} 
+  tic_tac_toe_board.each { |line| puts(line.center(48)) }
+  puts ''
 end
 
 def find_empty_squares(board)
   empty_squares = []
-  board.each_index {|index| empty_squares << index if board[index] == ' '}
+  board.each_index { |index| empty_squares << index if board[index] == ' ' }
   empty_squares
 end
 
-def set_current_player()
-  case PLAYS_FIRST
-  when 'player'
-    current_player = 'player'
-  when 'computer'
-    current_player = 'computer'
-  when 'choose'
-    loop do
-      puts "Who should play first?  Type 'p' for player or 'c' for computer"
-      user_choice = gets.chomp
-      if user_choice.downcase == 'p'
-        current_player = 'player'
-        break
-      elsif user_choice.downcase == 'c'
-        current_player = 'computer'
-        break
-      else
-        puts 'That is not a valid choice.'
-      end    
-    end
-    current_player
+def set_current_player
+  player_choice = ''
+  loop do
+    puts "Who should play first?  Type 'P' for player or 'C' for computer"
+    player_choice = gets.chomp.upcase
+    break if ['P', 'C'].include?(player_choice)
+    puts 'That is not a valid choice.'
   end
+  player_choice == 'P' ? 'player' : 'computer'
 end
 
 def player_select_square(board, marker)
   empty_squares = find_empty_squares(board)
-  
-  puts ''
-  puts "Select a square (#{joinor(empty_squares)}).".center(100)
-  square = gets.chomp
+
   loop do
-    if square != '0' && square.to_i == 0 || empty_squares.include?(square.to_i) == false
-      puts 'That is not a valid choice.'
-      puts "Please select a square (#{joinor(empty_squares)})."
-      square = gets.chomp
+    puts "Select a square (#{joinor(empty_squares)})."
+    square = gets.chomp
+    if (square != '0' && square.to_i == 0) || empty_squares.include?(square.to_i) == false
+      puts "That is not a valid choice."
     else
       board[square.to_i] = marker
       break
@@ -67,51 +54,36 @@ def player_select_square(board, marker)
   end
 end
 
-def search_board(board, winning_combos, player_marker, computer_marker, action)
-  moves = nil
-  open_spaces = nil
-  marker = nil
-  
-  case action.downcase
-  when 'win'
-    moves = 2
-    open_spaces = 1
-    marker = computer_marker
-  when 'block'
-    moves = 2
-    open_spaces = 1
-    marker = player_marker
-  end
+def search_board(board, action='') # Default action is to search the board for a block
+  marker = action == 'win' ? COMPUTER_MARKER : PLAYER_MARKER
 
   squares_to_check = []
-  winning_combos.each do |combo|
-    3.times {|int| squares_to_check[int] = board[combo[int]]}
-    if squares_to_check.count(marker) == moves && squares_to_check.count(' ') == open_spaces
+  WINNNING_COMBOS.each do |combo|
+    3.times { |int| squares_to_check[int] = board[combo[int]] }
+    if squares_to_check.count(marker) == 2 && squares_to_check.count(' ') == 1
       return combo[squares_to_check.index(' ')]
     end
   end
   nil
 end
 
-def computer_select_square(board, winning_combos, player_marker, computer_marker)
+def computer_select_square(board)
   empty_squares = find_empty_squares(board)
-  if search_board(board, winning_combos, player_marker, computer_marker, 'win')
-    board[search_board(board, winning_combos, player_marker, computer_marker, 'win')] = computer_marker
-  elsif search_board(board, winning_combos, player_marker, computer_marker, 'block')
-    board[search_board(board, winning_combos, player_marker, computer_marker, 'block')] = computer_marker
+  if search_board(board, 'win')
+    board[search_board(board, 'win')] = COMPUTER_MARKER
+  elsif search_board(board)
+    board[search_board(board)] = COMPUTER_MARKER
+  elsif board[4] == ' '
+    board[4] = COMPUTER_MARKER
   else
-    if empty_squares.include?(4)
-      board[4] = computer_marker
-    else
-      board[empty_squares.sample] = computer_marker unless empty_squares.empty? == true
-    end
+    board[empty_squares.sample] = COMPUTER_MARKER unless empty_squares.empty? == true
   end
 end
 
-def win?(board, winning_combos, marker)
+def win?(board, marker)
   squares_to_check = []
-  winning_combos.each do |combo|
-    3.times {|int| squares_to_check[int] = board[combo[int]]}
+  WINNNING_COMBOS.each do |combo|
+    3.times { |int| squares_to_check[int] = board[combo[int]] }
     if squares_to_check.count(marker) == 3
       return true
     end
@@ -120,7 +92,7 @@ def win?(board, winning_combos, marker)
 end
 
 def draw?(board)
-  find_empty_squares(board).empty? ? true : false
+  board.include?(' ') ? false : true
 end
 
 def joinor(array, delimiter=', ', conjunction='or ')
@@ -130,67 +102,77 @@ def joinor(array, delimiter=', ', conjunction='or ')
   selectable_squares
 end
 
-def display_score(player_score, computer_score)
-  puts "Player Score: #{player_score} Computer Score: #{computer_score}"
-end
-
-def display_win_or_draw(winner, scores)
+def display_result(scores, exit_match, winner='')
   if winner == 'player'
     puts 'You win!'
-    scores['player'] += 1
   elsif winner == 'computer'
     puts 'The Computer wins!'
-    scores['computer'] += 1
   else
     puts "It's a draw!"
   end
-    display_score(scores['player'], scores['computer'])
-    puts 'Press any key to continue'
-    gets.chomp
+
+  puts "Player Score: #{scores[:player]} Computer Score: #{scores[:computer]}"
+  if !scores.value?(5)
+    puts "Type 'E' to exit the match or press any other key to continue."
+    exit_match.replace('E') if gets.chomp.casecmp('E') == 0
+  end
 end
 
-def player_turn(board, winning_combos, player_marker, computer_marker, scores)
+def player_turn(board, exit_match, scores)
   player_select_square(board, PLAYER_MARKER)
-  display_board(board, PLAYER_MARKER, COMPUTER_MARKER)
-  if win?(board, WINNNING_COMBOS, PLAYER_MARKER)
-    display_win_or_draw('player', scores)
+  display_board(board)
+
+  if win?(board, PLAYER_MARKER)
+    scores[:player] += 1
+    display_result(scores, exit_match, 'player')
   elsif draw?(board)
-    display_win_or_draw('draw', scores)
-  end 
+    display_result(scores, exit_match)
+  end
 end
 
-def computer_turn(board, winning_combos, player_marker, computer_marker, scores)
-  computer_select_square(board, WINNNING_COMBOS, PLAYER_MARKER, COMPUTER_MARKER)
-  display_board(board, PLAYER_MARKER, COMPUTER_MARKER)
-  if win?(board, WINNNING_COMBOS, COMPUTER_MARKER)
-    display_win_or_draw('computer', scores)
+def computer_turn(board, exit_match, scores)
+  computer_select_square(board)
+  display_board(board)
+
+  if win?(board, COMPUTER_MARKER)
+    scores[:computer] += 1
+    display_result(scores, exit_match, 'computer')
   elsif draw?(board)
-    display_win_or_draw('draw', scores)
+    display_result(scores, exit_match)
   end
 end
 
 def alternate_player(current_player)
-  current_player == 'player' ? current_player = 'computer' : current_player = 'player'
-  current_player
+  current_player == 'player' ? 'computer' : 'player'
 end
 
-def select_square(current_player, board, winning_combos, player_marker, computer_marker, scores)
+def select_square(current_player, board, exit_match, scores)
   if current_player == 'player'
-    player_turn(board, winning_combos, player_marker, computer_marker, scores)
+    player_turn(board, exit_match, scores)
   else
-    computer_turn(board, winning_combos, player_marker, computer_marker, scores)
+    computer_turn(board, exit_match, scores)
   end
-  alternate_player(current_player)
+end
+
+def display_match_winner(scores)
+  if scores[:player] == 5
+    puts 'You have won the match!'
+  elsif scores[:computer] == 5
+    puts "The computer has won the match!\n\n"
+  else
+    puts "You have exited the match\n\n"
+  end
 end
 
 # Main Program Start-------------------------
 
 puts "Welcome to Tic Tac Toe!\n\n"
 
-loop do 
+loop do
   board = []
-  scores = {'player' => 0, 'computer' => 0}
+  scores = { player: 0, computer: 0 }
   current_player = ''
+  exit_match = ''
 
   puts "Enter 'N' to start a new match (first to five wins) or 'Q' to quit."
   play_a_game = gets.chomp.upcase
@@ -198,24 +180,26 @@ loop do
   if play_a_game == 'Q'
     break
   elsif play_a_game == 'N'
-    loop do 
-      break if scores.has_value?(5)
-      current_player = set_current_player()
-      initialize_board(board)    
-      display_board(board, PLAYER_MARKER, COMPUTER_MARKER)
 
-      loop do 
-        select_square(current_player, board, WINNNING_COMBOS, PLAYER_MARKER, COMPUTER_MARKER, scores)
+    loop do # Match loop
+      break if scores.value?(5) || exit_match == 'E'
+      current_player = PLAYS_FIRST == 'choose' ? set_current_player : PLAYS_FIRST
+      initialize_board!(board)
+      display_board(board)
+
+      loop do # Game loop
+        select_square(current_player, board, exit_match, scores)
         current_player = alternate_player(current_player)
-        break if win?(board, WINNNING_COMBOS, PLAYER_MARKER) || 
-        win?(board, WINNNING_COMBOS, COMPUTER_MARKER) ||
-        draw?(board)
+
+        break if win?(board, PLAYER_MARKER) ||
+                 win?(board, COMPUTER_MARKER) ||
+                 draw?(board)
       end
     end
   else
     puts 'That is not a valid choice.'
   end
-end 
 
-
-
+  display_match_winner(scores)
+  puts "Thanks for playing Tic Tac Toe!\n\n"
+end
